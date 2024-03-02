@@ -1,0 +1,75 @@
+services:
+
+  eureka-discovery-server:
+    container_name: eureka-discovery-server
+    build:
+      context: eureka-discovery-server
+      dockerfile: Dockerfile
+      args:
+        BUILD_VERSION: 0.2
+        BUILD_DATE: $(date +"%Y-%m-%d %H:%M:%S")
+    environment:
+      - logging.level.root=INFO
+      - logging.level.org.springframework.web=INFO
+    ports:
+      - 8761:8761
+    networks:
+      - kafka-cloud-network
+
+  kafka-app-service:
+    container_name: kafka-app-service
+    build:
+      context: kafka-app-service
+      dockerfile: Dockerfile
+      args:
+        BUILD_VERSION: 0.2
+        BUILD_DATE: $(date +"%Y-%m-%d %H:%M:%S")
+    ports:
+      - 8444:8444
+    environment:
+      - eureka.client.service-url.defaultZone=http://eureka-discovery-server:8761/eureka
+      - logging.level.root=INFO
+      - logging.level.org.springframework.web=INFO
+      - spring.kafka.properties.security.protocol=PLAINTEXT
+      - spring.kafka.consumer.bootstrap-servers=kafka:9092
+      - spring.kafka.consumer.group-id="my_group_id"
+      - spring.kafka.consumer.auto-offset-reset=earliest
+      - spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+      - spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer
+
+      - spring.kafka.producer.bootstrap-servers=kafka:9092
+      - spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+      - spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
+    depends_on:
+      - eureka-discovery-server
+      - kafka
+    networks:
+      - kafka-cloud-network
+
+  zookeeper1:
+    image: wurstmeister/zookeeper
+    ports:
+      - 2181:2181
+    container_name: zookeeper
+    networks:
+      - kafka-cloud-network
+
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPIC: "my_topic:1:3"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092
+    networks:
+      - kafka-cloud-network
+
+networks:
+  kafka-cloud-network:
+    driver: bridge

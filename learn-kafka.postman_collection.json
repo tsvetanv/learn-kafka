@@ -1,0 +1,47 @@
+{
+	"info": {
+		"_postman_id": "4a8d8628-708d-47d1-b961-489ac9889071",
+		"name": "learn-kafka",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29987392"
+	},
+	"item": [
+		{
+			"name": "post-message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payload\": \"ala-bala\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8444/api/v1/kafka-app/message",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8444",
+					"path": [
+						"api",
+						"v1",
+						"kafka-app",
+						"message"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
